@@ -1,5 +1,10 @@
 # LazyStream
 
+[![Minimum PHP Version](https://img.shields.io/badge/php-%3E%3D%208.0-8892BF.svg?style=flat-square)](https://php.net/)
+![CI](https://github.com/alexandre-daubois/lazy-stream/actions/workflows/php.yml/badge.svg)
+[![Latest Unstable Version](http://poser.pugx.org/alexandre-daubois/lazy-stream/v/unstable)](https://packagist.org/packages/alexandre-daubois/lazy-stream)
+[![License](http://poser.pugx.org/alexandre-daubois/lazy-stream/license)](https://packagist.org/packages/alexandre-daubois/lazy-stream)
+
 LazyStream is a library that provides a convenient way to write lazily to streams using generators. It allows you to write data incrementally to a stream, reducing memory usage and improving performance when dealing with large amounts of data.
 
 ## Features
