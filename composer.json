@@ -1,0 +1,34 @@
+{
+    "name": "alexandre-daubois/lazy-stream",
+    "type": "library",
+    "description": "Write data to streams, only when it is really needed to.",
+    "keywords": ["lazy", "stream", "lazy-loading", "loading", "streaming", "generator"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Alexandre Daubois",
+            "email": "alex.daubois@gmail.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "require": {
+        "php": ">=8.0"
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": {
+            "*": "dist"
+        },
+        "sort-packages": true
+    },
+    "autoload": {
+        "psr-4": { "LazyStream\\": "src" }
+    },
+    "scripts": {
+        "test": "./vendor/bin/phpunit"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.2"
+    }
+}
