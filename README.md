@@ -12,7 +12,7 @@ LazyStream is a library that provides a convenient way to write lazily to stream
 - Lazy writing: The library uses PHP generators to write data lazily to a stream. This means that data is written in small chunks, reducing memory consumption and allowing for efficient handling of large datasets.
 - Lazy opening: your stream will never be opened before you actually need it.
 - Stream compatibility: The library is compatible with various stream types, including file streams, network streams, and custom streams. You can easily integrate it with your existing code that relies on stream operations. It actually works with any type of stream, as long as it is registered thanks to `stream_wrapper_register()`. Follow this link for more information: https://www.php.net/manual/en/function.stream-wrapper-register.php
-- Stream modes: the library only supported stream reading at this time. It is planned to support lazy stream reading and a convinient way to do so in the near future.
+- Stream modes: the library only supported stream reading at this time. It is planned to support lazy stream reading and a convenient way to do so in the near future.
 
 ## Installation
 
