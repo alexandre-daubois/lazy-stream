@@ -9,6 +9,9 @@
 
 namespace LazyStream;
 
+use LazyStream\Exception\LazyStreamWriterOpenException;
+use LazyStream\Exception\LazyStreamWriterTriggerException;
+
 /**
  * A class to write to a stream lazily. The stream is only opened when
  * the `trigger()` method is called. Data to write are provided by a
@@ -21,17 +24,23 @@ class LazyStreamWriter implements LazyStreamWriterInterface
      */
     private $handle;
 
+    /**
+     * @param string $uri A valid stream URI.
+     * @param \Iterator $dataProvider The data provider that will be written to the stream.
+     * @param string $openMode A valid writing mode listed in https://www.php.net/manual/fr/function.fopen.php.
+     * @param bool $autoClose Whether the stream should be closed once the `trigger` method is done.
+     */
     public function __construct(
         private string $uri,
-        private \Iterator $dataProvider
+        private \Iterator $dataProvider,
+        private string $openMode = 'w',
+        private bool $autoClose = true,
     ) {
     }
 
     public function __destruct()
     {
         if (\is_resource($this->handle)) {
-            \fflush($this->handle);
-
             \fclose($this->handle);
         }
     }
@@ -39,15 +48,29 @@ class LazyStreamWriter implements LazyStreamWriterInterface
     public function trigger(): void
     {
         if (!\is_resource($this->handle)) {
-            $this->handle = \fopen($this->uri, 'w');
+            $this->handle = @\fopen($this->uri, $this->openMode);
+
+            if ($this->handle === false) {
+                throw new LazyStreamWriterOpenException($this->uri, $this->openMode);
+            }
         }
 
-        while ($this->dataProvider->valid()) {
-            $data = $this->dataProvider->current();
+        try {
+            while ($this->dataProvider->valid()) {
+                $data = $this->dataProvider->current();
 
-            \fwrite($this->handle, $data, \strlen($data));
+                \fwrite($this->handle, $data, \strlen($data));
 
-            $this->dataProvider->next();
+                $this->dataProvider->next();
+            }
+        } catch (\Throwable $throwable) {
+            throw new LazyStreamWriterTriggerException(previous: $throwable);
+        } finally {
+            if (\is_resource($this->handle) && $this->autoClose) {
+                \fclose($this->handle);
+
+                $this->handle = null;
+            }
         }
     }
 
@@ -73,5 +96,15 @@ class LazyStreamWriter implements LazyStreamWriterInterface
     public function equals(self $other): bool
     {
         return $this->dataProvider === $other->dataProvider && $this->uri === $other->uri;
+    }
+
+    public function isAutoClose(): bool
+    {
+        return $this->autoClose;
+    }
+
+    public function setAutoClose(bool $autoClose): void
+    {
+        $this->autoClose = $autoClose;
     }
 }
