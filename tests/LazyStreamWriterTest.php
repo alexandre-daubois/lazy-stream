@@ -9,8 +9,11 @@
 
 namespace LazyStream\Tests;
 
+use LazyStream\Exception\LazyStreamWriterOpenException;
+use LazyStream\Exception\LazyStreamWriterTriggerException;
 use LazyStream\LazyStreamWriter;
 use PHPUnit\Framework\TestCase;
+use Traversable;
 
 /**
  * @covers \LazyStream\LazyStreamWriter
@@ -60,7 +63,7 @@ class LazyStreamWriterTest extends TestCase
             yield 'chunk';
 
             return 'return_value';
-        })());
+        })(), autoClose: false);
 
         $lazyStream->trigger();
         $handle = $lazyStream->getStreamHandle();
@@ -71,5 +74,54 @@ class LazyStreamWriterTest extends TestCase
 
         // Generator should be closed
         $this->assertFalse($generator->valid());
+    }
+
+    public function testInvalidStream(): void
+    {
+        $lazyStream = new LazyStreamWriter('php://invalid', new \ArrayIterator([]));
+
+        $this->expectException(LazyStreamWriterOpenException::class);
+        $this->expectExceptionMessage('Unable to open "php://invalid" with mode "w".');
+        $lazyStream->trigger();
+    }
+
+    public function testTriggersThrowsOnUnwrappingWithAutoClose(): void
+    {
+        $expectedException = new \Exception();
+
+        $lazyStream = new LazyStreamWriter('php://memory', (static function () use ($expectedException): \Generator {
+            yield 'data';
+
+            throw $expectedException;
+        })());
+
+        $this->expectExceptionObject(new LazyStreamWriterTriggerException(previous: $expectedException));
+        try {
+            $lazyStream->trigger();
+        } catch (\Exception $exception) {
+            $this->assertNull($lazyStream->getStreamHandle());
+
+            throw $exception;
+        }
+    }
+
+    public function testTriggersThrowsOnUnwrappingWithoutAutoClose(): void
+    {
+        $expectedException = new \Exception();
+
+        $lazyStream = new LazyStreamWriter('php://memory', (static function () use ($expectedException): \Generator {
+            yield 'data';
+
+            throw $expectedException;
+        })(), autoClose: false);
+
+        $this->expectExceptionObject(new LazyStreamWriterTriggerException(previous: $expectedException));
+        try {
+            $lazyStream->trigger();
+        } catch (\Exception $exception) {
+            $this->assertNotNull($lazyStream->getStreamHandle());
+
+            throw $exception;
+        }
     }
 }
