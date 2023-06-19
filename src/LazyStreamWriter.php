@@ -23,7 +23,7 @@ class LazyStreamWriter implements LazyStreamWriterInterface
 
     public function __construct(
         private string $uri,
-        private \Generator $dataProvider
+        private \Iterator $dataProvider
     ) {
     }
 
@@ -57,11 +57,6 @@ class LazyStreamWriter implements LazyStreamWriterInterface
     public function getStreamHandle()
     {
         return $this->handle;
-    }
-
-    public function getProviderReturn(): mixed
-    {
-        return $this->dataProvider->getReturn();
     }
 
     public function unlink(): bool

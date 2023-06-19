@@ -68,7 +68,6 @@ class LazyStreamWriterTest extends TestCase
         $this->assertNotNull($handle);
         \rewind($handle);
         $this->assertSame('chunkchunk', stream_get_contents($handle));
-        $this->assertSame('return_value', $lazyStream->getProviderReturn());
 
         // Generator should be closed
         $this->assertFalse($generator->valid());
