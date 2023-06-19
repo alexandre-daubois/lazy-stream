@@ -47,13 +47,8 @@ $stream = new \LazyStream\LazyStreamWriter(
 );
 
 // Trigger the stream to *actually* initiate connection
-// and unwrap the generator
+// and unwrap the iterator
 $stream->trigger();
-
-// Optionally fetch the generator return value
-if ($stream->getProviderReturn() === false) {
-    // ...
-}
 ```
 
 ### Usage with third-party libraries
