@@ -9,7 +9,7 @@
 
 namespace LazyStream;
 
-use LazyStream\Exception\LazyStreamWriterOpenException;
+use LazyStream\Exception\LazyStreamOpenException;
 use LazyStream\Exception\LazyStreamWriterTriggerException;
 
 /**
@@ -17,15 +17,8 @@ use LazyStream\Exception\LazyStreamWriterTriggerException;
  * the `trigger()` method is called. Data to write are provided by a
  * generator, allowing data to be generated on the fly if possible.
  */
-class LazyStreamWriter implements LazyStreamWriterInterface
+class LazyStreamWriter extends AbstractLazyStream implements LazyStreamWriterInterface
 {
-    /**
-     * @param resource|null $handle
-     */
-    private $handle;
-
-    private ?array $metadata = null;
-
     /**
      * @param string $uri A valid stream URI.
      * @param \Iterator $dataProvider The data provider that will be written to the stream.
@@ -33,16 +26,12 @@ class LazyStreamWriter implements LazyStreamWriterInterface
      * @param bool $autoClose Whether the stream should be closed once the `trigger` method is done.
      */
     public function __construct(
-        private string $uri,
+        string $uri,
         private \Iterator $dataProvider,
-        private string $openingMode = 'w',
+        string $openingMode = 'w',
         private bool $autoClose = true,
     ) {
-    }
-
-    public function __destruct()
-    {
-        $this->closeStream();
+        parent::__construct($uri, $openingMode);
     }
 
     public function trigger(): void
@@ -66,14 +55,6 @@ class LazyStreamWriter implements LazyStreamWriterInterface
         }
     }
 
-    /**
-     * @return resource|null
-     */
-    public function getStreamHandle()
-    {
-        return $this->handle;
-    }
-
     public function unlink(): bool
     {
         if (!\is_resource($this->handle)) {
@@ -83,20 +64,6 @@ class LazyStreamWriter implements LazyStreamWriterInterface
         $this->closeStream();
 
         return \unlink($this->uri);
-    }
-
-    /**
-     * @return array Stream meta-data array indexed by keys given in https://www.php.net/manual/en/function.stream-get-meta-data.php.
-     */
-    public function getMetadata(): array
-    {
-        if ($this->metadata === null) {
-            // If metadata is null, then we never opened the stream yet
-            $this->openStream();
-            $this->closeStream();
-        }
-
-        return $this->metadata;
     }
 
     public function equals(self $other): bool
@@ -114,26 +81,12 @@ class LazyStreamWriter implements LazyStreamWriterInterface
         $this->autoClose = $autoClose;
     }
 
-    private function openStream(): void
-    {
-        if (!\is_resource($this->handle)) {
-            $this->handle = @\fopen($this->uri, $this->openingMode);
-
-            if ($this->handle === false) {
-                throw new LazyStreamWriterOpenException($this->uri, $this->openingMode);
-            }
-        }
-
-        $this->metadata = \stream_get_meta_data($this->handle);
-    }
-
-    private function closeStream(): void
+    protected function closeStream(): void
     {
         if (\is_resource($this->handle)) {
             \fflush($this->handle);
-            \fclose($this->handle);
-
-            $this->handle = null;
         }
+
+        parent::closeStream();
     }
 }

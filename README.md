@@ -101,3 +101,22 @@ class GoogleCloudStorageLazyStreamFactory
     }
 }
 ```
+
+### Reading lazily a stream with `LazyStreamReader`
+
+Files are already read lazily by default: when you call `fread()`, you only fetch the number of bytes you asked for, not more.
+`LazyStreamReader` does the same thing, but it also allows you to keep the stream open or not between reading operations.
+
+For example, you may want to read a file 1MB by 1MB, and do some processing that may take some time each time. By setting the `autoClose` option to `true` when creating a new `LazyStreamReader` object, you ask to close the stream after each reading operation and open it again when the next reading operation is triggered. You'll be resumed at the same position you were in the stream before closing it.
+
+```php
+// The stream is not opened yet, in case you never need it
+$stream = new \LazyStream\LazyStreamReader('https://user:pass@example.com/my-file.png', chunkSize: 1024, autoClose: true, binary: true);
+
+// Use the stream directly in the loop
+foreach ($stream as $str) {
+    // With auto-closing, the stream is already closed here. You can
+    // do any long operation, and the stream will be opened again when
+    // you get in the next loop iteration
+}
+```
