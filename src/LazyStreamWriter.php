@@ -24,36 +24,30 @@ class LazyStreamWriter implements LazyStreamWriterInterface
      */
     private $handle;
 
+    private ?array $metadata = null;
+
     /**
      * @param string $uri A valid stream URI.
      * @param \Iterator $dataProvider The data provider that will be written to the stream.
-     * @param string $openMode A valid writing mode listed in https://www.php.net/manual/fr/function.fopen.php.
+     * @param string $openingMode A valid writing mode listed in https://www.php.net/manual/fr/function.fopen.php.
      * @param bool $autoClose Whether the stream should be closed once the `trigger` method is done.
      */
     public function __construct(
         private string $uri,
         private \Iterator $dataProvider,
-        private string $openMode = 'w',
+        private string $openingMode = 'w',
         private bool $autoClose = true,
     ) {
     }
 
     public function __destruct()
     {
-        if (\is_resource($this->handle)) {
-            \fclose($this->handle);
-        }
+        $this->closeStream();
     }
 
     public function trigger(): void
     {
-        if (!\is_resource($this->handle)) {
-            $this->handle = @\fopen($this->uri, $this->openMode);
-
-            if ($this->handle === false) {
-                throw new LazyStreamWriterOpenException($this->uri, $this->openMode);
-            }
-        }
+        $this->openStream();
 
         try {
             while ($this->dataProvider->valid()) {
@@ -66,10 +60,8 @@ class LazyStreamWriter implements LazyStreamWriterInterface
         } catch (\Throwable $throwable) {
             throw new LazyStreamWriterTriggerException(previous: $throwable);
         } finally {
-            if (\is_resource($this->handle) && $this->autoClose) {
-                \fclose($this->handle);
-
-                $this->handle = null;
+            if ($this->autoClose) {
+                $this->closeStream();
             }
         }
     }
@@ -88,9 +80,23 @@ class LazyStreamWriter implements LazyStreamWriterInterface
             return true;
         }
 
-        $this->handle = null;
+        $this->closeStream();
 
         return \unlink($this->uri);
+    }
+
+    /**
+     * @return array Stream meta-data array indexed by keys given in https://www.php.net/manual/en/function.stream-get-meta-data.php.
+     */
+    public function getMetadata(): array
+    {
+        if ($this->metadata === null) {
+            // If metadata is null, then we never opened the stream yet
+            $this->openStream();
+            $this->closeStream();
+        }
+
+        return $this->metadata;
     }
 
     public function equals(self $other): bool
@@ -106,5 +112,28 @@ class LazyStreamWriter implements LazyStreamWriterInterface
     public function setAutoClose(bool $autoClose): void
     {
         $this->autoClose = $autoClose;
+    }
+
+    private function openStream(): void
+    {
+        if (!\is_resource($this->handle)) {
+            $this->handle = @\fopen($this->uri, $this->openingMode);
+
+            if ($this->handle === false) {
+                throw new LazyStreamWriterOpenException($this->uri, $this->openingMode);
+            }
+        }
+
+        $this->metadata = \stream_get_meta_data($this->handle);
+    }
+
+    private function closeStream(): void
+    {
+        if (\is_resource($this->handle)) {
+            \fflush($this->handle);
+            \fclose($this->handle);
+
+            $this->handle = null;
+        }
     }
 }

@@ -24,7 +24,7 @@ composer require alexandre-daubois/lazy-stream
 
 ## Usage
 
-### Writing lazily to a stream
+### Writing lazily to a stream with `LazyStreamWriter`
 
 ```php
 function provideJsonData(): \Generator
@@ -49,9 +49,20 @@ $stream = new \LazyStream\LazyStreamWriter(
 // Trigger the stream to *actually* initiate connection
 // and unwrap the iterator
 $stream->trigger();
+
+// Fetch stream's metadata, which will also be done lazily. It is
+// *not* required to call `trigger()` to get those data.
+$metadata = $stream->getMetadata();
 ```
 
-### Usage with third-party libraries
+### Configuring `LazyStreamWriter` behavior
+
+A few options are available to configure how à lazy stream should behave:
+
+- Opening mode: this allows to define the mode that will be used to open the stream. Any writing mode [listed here](https://www.php.net/manual/en/function.fopen.php) can be used.
+- Auto-closing: whether the stream should be automatically flushed and closed at the end of the `trigger()` method. If set to false, the stream will be flushed and closed in any case when the `LazyStreamWriter` object is destroyed.
+
+## Usage with third-party libraries
 
 This library also works well with third-party libraries. For example, you can combine it with the [google/cloud-storage](https://packagist.org/packages/google/cloud-storage) package to write big files to your buckets without having to worry about memory problems (among other things).
 

@@ -124,4 +124,33 @@ class LazyStreamWriterTest extends TestCase
             throw $exception;
         }
     }
+
+    public function testGetType(): void
+    {
+        $lazyStream = new LazyStreamWriter('php://memory', new \ArrayIterator([]));
+
+        $this->assertSame('MEMORY', $lazyStream->getMetadata()['stream_type']);
+        $this->assertNull($lazyStream->getStreamHandle());
+    }
+
+    public function testGetTypeOnTriggeredStreamWithoutAutoclose(): void
+    {
+        $lazyStream = new LazyStreamWriter('php://memory', new \ArrayIterator([]), autoClose: false);
+
+        $lazyStream->trigger();
+
+        $this->assertSame('MEMORY', $lazyStream->getMetadata()['stream_type']);
+        $this->assertNotNull($lazyStream->getStreamHandle());
+    }
+
+    public function testGetTypeOnTriggeredStreamWithAutoclose(): void
+    {
+        $lazyStream = new LazyStreamWriter('php://memory', new \ArrayIterator([]), autoClose: true);
+
+        $lazyStream->trigger();
+        $this->assertNull($lazyStream->getStreamHandle());
+
+        $this->assertSame('MEMORY', $lazyStream->getMetadata()['stream_type']);
+        $this->assertNull($lazyStream->getStreamHandle());
+    }
 }
