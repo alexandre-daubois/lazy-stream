@@ -9,7 +9,6 @@
 
 namespace LazyStream;
 
-interface LazyStreamWriterInterface
+interface LazyStreamReaderInterface extends \IteratorAggregate
 {
-    public function trigger(): void;
 }

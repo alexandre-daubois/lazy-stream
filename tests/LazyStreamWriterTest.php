@@ -9,11 +9,10 @@
 
 namespace LazyStream\Tests;
 
-use LazyStream\Exception\LazyStreamWriterOpenException;
+use LazyStream\Exception\LazyStreamOpenException;
 use LazyStream\Exception\LazyStreamWriterTriggerException;
 use LazyStream\LazyStreamWriter;
 use PHPUnit\Framework\TestCase;
-use Traversable;
 
 /**
  * @covers \LazyStream\LazyStreamWriter
@@ -80,7 +79,7 @@ class LazyStreamWriterTest extends TestCase
     {
         $lazyStream = new LazyStreamWriter('php://invalid', new \ArrayIterator([]));
 
-        $this->expectException(LazyStreamWriterOpenException::class);
+        $this->expectException(LazyStreamOpenException::class);
         $this->expectExceptionMessage('Unable to open "php://invalid" with mode "w".');
         $lazyStream->trigger();
     }

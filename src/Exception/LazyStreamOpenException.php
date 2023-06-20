@@ -2,7 +2,7 @@
 
 namespace LazyStream\Exception;
 
-class LazyStreamWriterOpenException extends AbstractLazyStreamWriterException
+class LazyStreamOpenException extends AbstractLazyStreamWriterException
 {
     public function __construct(string $uri, string $mode)
     {
