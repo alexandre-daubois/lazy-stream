@@ -9,10 +9,11 @@ LazyStream is a library that provides a convenient way to write lazily to stream
 
 ## Features
 
-- Lazy writing: The library uses PHP generators to write data lazily to a stream. This means that data is written in small chunks, reducing memory consumption and allowing for efficient handling of large datasets.
-- Lazy opening: your stream will never be opened before you actually need it.
-- Stream compatibility: The library is compatible with various stream types, including file streams, network streams, and custom streams. You can easily integrate it with your existing code that relies on stream operations. It actually works with any type of stream, as long as it is registered thanks to `stream_wrapper_register()`. Follow this link for more information: https://www.php.net/manual/en/function.stream-wrapper-register.php
-- Stream modes: the library only supported stream reading at this time. It is planned to support lazy stream reading and a convenient way to do so in the near future.
+- **Lazy writing**: The library uses PHP generators to write data lazily to a stream. This means that data is written in small chunks, reducing memory consumption and allowing for efficient handling of large datasets.
+- **Multi stream writing** (lazily of course): export large datasets to multiple files or network locations concurrently, like backups and logs.
+- **Lazy opening**: your stream will never be opened before you actually need it.
+- **Stream compatibility**: The library is compatible with various stream types, including file streams, network streams, and custom streams. You can easily integrate it with your existing code that relies on stream operations. It actually works with any type of stream, as long as it is registered thanks to `stream_wrapper_register()`. Follow this link for more information: https://www.php.net/manual/en/function.stream-wrapper-register.php
+- **Stream modes**: the library only supported stream reading at this time. It is planned to support lazy stream reading and a convenient way to do so in the near future.
 
 ## Installation
 
@@ -72,7 +73,72 @@ A few options are available to configure how à lazy stream should behave:
 - Opening mode: this allows to define the mode that will be used to open the stream. Any writing mode [listed here](https://www.php.net/manual/en/function.fopen.php) can be used.
 - Auto-closing: whether the stream should be automatically flushed and closed at the end of the `trigger()` method. If set to false, the stream will be flushed and closed in any case when the `LazyStreamWriter` object is destroyed.
 
-## Usage with third-party libraries
+## The `MultiLazyStreamWriter` class
+
+The MultiLazyStreamWriter is a core class in the LazyStream library. This class empowers you to write to multiple streams concurrently from any iterator, like a generator. This is particularly beneficial when you need to write large amounts of data to different locations in a memory-efficient manner.
+
+This class is extremely helpful in situations where large amounts of data need to be written to multiple destinations:
+
+- Logging systems: Write log data to multiple destinations like local files, network sockets, etc.
+- Data export: Export large datasets to multiple files or network locations concurrently.
+- Backup systems: Write backup data to multiple storage locations.
+
+Here is a usage example:
+
+```php
+use LazyStream\MultiLazyStreamWriter;
+
+class BackupProvider
+{
+    public function provideData(): \Generator
+    {
+        // Yield backup data
+    }
+}
+
+// Write your backups in many locations at once
+$stream = new MultiLazyStreamWriter([
+        'https://user:pass@example.com/backup.json',
+        'gs://backup_path/backup.json',
+        's3://backup_path/backup.json',
+    ]
+    (new BackupProvider())->provudeData()
+);
+
+$stream->trigger();
+```
+
+## Reading lazily a stream with `LazyStreamReader`
+
+Files are already read lazily by default: when you call `fread()`, you only fetch the number of bytes you asked for, not more.
+`LazyStreamReader` does the same thing, but it also allows you to keep the stream open or not between reading operations.
+
+#### Why using this reader?
+
+The autoclose feature of the `LazyStreamReader` class offers several concrete use cases where it can be useful:
+
+- **Automatic resource management**: When working with stream resources, such as files or network connections, it's important to properly close them to free up system resources. By enabling autoclose, you ensure that the stream is automatically closed after each read operation, avoiding potential resource leaks.
+- **Iterative reading**: If you want to read data from a stream iteratively, performing sequential read operations, autoclose can simplify your code. After each read, the stream is automatically closed, and in the next read operation, it is reopened at the same position, allowing seamless iteration over the stream's data.
+- **Asynchronous processing**: When working with asynchronous read operations or parallel tasks, autoclose can come in handy. After each read, the stream is closed, allowing other tasks to access the stream if needed. When the task is ready to perform the next read operation, the stream is automatically reopened.
+- **Fine-grained memory management**: If you're dealing with large or long-lasting streams, it can be beneficial to close the stream after each read to release memory used by the read buffer. Autoclose enables fine-grained memory management by closing the stream immediately after each read operation.
+
+By using the autoclose feature, you simplify resource management, facilitate iterative or asynchronous operations, and have better control over memory management when reading data from a stream.
+
+By setting the `autoClose` option to `true` when creating a new `LazyStreamReader` object, you ask to close the stream after each reading operation and open it again when the next reading operation is triggered. You'll be resumed at the same position you were in the stream before closing it.
+
+```php
+// The stream is not opened yet, in case you never need it
+$stream = new \LazyStream\LazyStreamReader('https://user:pass@example.com/my-file.png', chunkSize: 1024, autoClose: true, binary: true);
+
+// Use the stream directly in the loop
+foreach ($stream as $str) {
+    // With auto-closing, the stream is already closed here. You can
+    // do any long operation, and the stream will be opened again when
+    // you get in the next loop iteration
+}
+```
+
+## Usage of third-party libraries with LazyStream
 
 This library also works well with third-party libraries. For example, you can combine it with the [google/cloud-storage](https://packagist.org/packages/google/cloud-storage) package to write big files to your buckets without having to worry about memory problems (among other things).
 
@@ -109,35 +175,5 @@ class GoogleCloudStorageLazyStreamFactory
         // and stream big files to your bucket
         return new LazyStream(sprintf('gs://%s/%s', $bucket, $path), $generator);
     }
-}
-```
-
-### Reading lazily a stream with `LazyStreamReader`
-
-Files are already read lazily by default: when you call `fread()`, you only fetch the number of bytes you asked for, not more.
-`LazyStreamReader` does the same thing, but it also allows you to keep the stream open or not between reading operations.
-
-#### Why using this reader?
-
-The autoclose feature of the `LazyStreamReader` class offers several concrete use cases where it can be useful:
-
-- **Automatic resource management**: When working with stream resources, such as files or network connections, it's important to properly close them to free up system resources. By enabling autoclose, you ensure that the stream is automatically closed after each read operation, avoiding potential resource leaks.
-- **Iterative reading**: If you want to read data from a stream iteratively, performing sequential read operations, autoclose can simplify your code. After each read, the stream is automatically closed, and in the next read operation, it is reopened at the same position, allowing seamless iteration over the stream's data.
-- **Asynchronous processing**: When working with asynchronous read operations or parallel tasks, autoclose can come in handy. After each read, the stream is closed, allowing other tasks to access the stream if needed. When the task is ready to perform the next read operation, the stream is automatically reopened.
-- **Fine-grained memory management**: If you're dealing with large or long-lasting streams, it can be beneficial to close the stream after each read to release memory used by the read buffer. Autoclose enables fine-grained memory management by closing the stream immediately after each read operation.
-
-By using the autoclose feature, you simplify resource management, facilitate iterative or asynchronous operations, and have better control over memory management when reading data from a stream.
-
-By setting the `autoClose` option to `true` when creating a new `LazyStreamReader` object, you ask to close the stream after each reading operation and open it again when the next reading operation is triggered. You'll be resumed at the same position you were in the stream before closing it.
-
-```php
-// The stream is not opened yet, in case you never need it
-$stream = new \LazyStream\LazyStreamReader('https://user:pass@example.com/my-file.png', chunkSize: 1024, autoClose: true, binary: true);
-
-// Use the stream directly in the loop
-foreach ($stream as $str) {
-    // With auto-closing, the stream is already closed here. You can
-    // do any long operation, and the stream will be opened again when
-    // you get in the next loop iteration
 }
 ```

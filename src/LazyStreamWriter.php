@@ -42,7 +42,9 @@ class LazyStreamWriter extends AbstractLazyStream implements LazyStreamWriterInt
             while ($this->dataProvider->valid()) {
                 $data = $this->dataProvider->current();
 
-                \fwrite($this->handle, $data, \strlen($data));
+                if (false === \fwrite($this->handle, $data)) {
+                    throw new LazyStreamWriterTriggerException(sprintf('Unable to write to stream with URI "%s".', $this->metadata['uri']));
+                }
 
                 $this->dataProvider->next();
             }
