@@ -101,7 +101,7 @@ $stream = new MultiLazyStreamWriter([
         'https://user:pass@example.com/backup.json',
         'gs://backup_path/backup.json',
         's3://backup_path/backup.json',
-    ]
+    ],
     (new BackupProvider())->provudeData()
 );
 
