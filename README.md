@@ -102,7 +102,7 @@ $stream = new MultiLazyStreamWriter([
         'gs://backup_path/backup.json',
         's3://backup_path/backup.json',
     ],
-    (new BackupProvider())->provudeData()
+    (new BackupProvider())->provideData()
 );
 
 $stream->trigger();
