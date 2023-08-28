@@ -1,6 +1,6 @@
 # LazyStream
 
-[![Minimum PHP Version](https://img.shields.io/badge/php-%3E%3D%208.0-8892BF.svg?style=flat-square)](https://php.net/)
+[![Minimum PHP Version](https://img.shields.io/badge/php-%3E%3D%208.1-8892BF.svg?style=flat-square)](https://php.net/)
 ![CI](https://github.com/alexandre-daubois/lazy-stream/actions/workflows/php.yml/badge.svg)
 [![Latest Unstable Version](http://poser.pugx.org/alexandre-daubois/lazy-stream/v/unstable)](https://packagist.org/packages/alexandre-daubois/lazy-stream)
 [![License](http://poser.pugx.org/alexandre-daubois/lazy-stream/license)](https://packagist.org/packages/alexandre-daubois/lazy-stream)

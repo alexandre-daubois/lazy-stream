@@ -11,11 +11,10 @@ namespace LazyStream\Tests;
 
 use LazyStream\Exception\LazyStreamOpenException;
 use LazyStream\MultiLazyStreamWriter;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
-/**
- * @covers \LazyStream\MultiLazyStreamWriter
- */
+#[CoversClass(MultiLazyStreamWriter::class)]
 class MultiLazyStreamWriterTest extends TestCase
 {
     public function testStreamAreLazilyOpened(): void

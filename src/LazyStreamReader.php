@@ -19,9 +19,9 @@ class LazyStreamReader extends AbstractLazyStream implements LazyStreamReaderInt
      */
     public function __construct(
         string $uri,
-        private int $chunkSize,
+        private readonly int $chunkSize,
         private bool $autoClose = true,
-        private bool $binary = false,
+        private readonly bool $binary = false,
     ) {
         parent::__construct($uri, $this->binary ? 'rb' : 'r');
     }

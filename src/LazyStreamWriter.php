@@ -27,7 +27,7 @@ class LazyStreamWriter extends AbstractLazyStream implements LazyStreamWriterInt
      */
     public function __construct(
         string $uri,
-        private \Iterator $dataProvider,
+        private readonly \Iterator $dataProvider,
         string $openingMode = 'w',
         private bool $autoClose = true,
     ) {

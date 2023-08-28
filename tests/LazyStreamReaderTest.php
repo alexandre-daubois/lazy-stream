@@ -10,11 +10,10 @@
 use LazyStream\Exception\LazyStreamOpenException;
 use LazyStream\LazyStreamReader;
 use LazyStream\LazyStreamWriter;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
-/**
- * @covers \LazyStream\LazyStreamReader
- */
+#[CoversClass(LazyStreamReader::class)]
 class LazyStreamReaderTest extends TestCase
 {
     public function testStreamIsLazilyOpened(): void
