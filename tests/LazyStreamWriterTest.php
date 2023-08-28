@@ -12,11 +12,10 @@ namespace LazyStream\Tests;
 use LazyStream\Exception\LazyStreamOpenException;
 use LazyStream\Exception\LazyStreamWriterTriggerException;
 use LazyStream\LazyStreamWriter;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
-/**
- * @covers \LazyStream\LazyStreamWriter
- */
+#[CoversClass(LazyStreamWriter::class)]
 class LazyStreamWriterTest extends TestCase
 {
     public function testEqualsDifferentGenerators(): void

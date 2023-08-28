@@ -35,9 +35,9 @@ class MultiLazyStreamWriter implements LazyStreamWriterInterface
      * @param bool $autoClose Whether the stream should be closed once the `trigger` method is done.
      */
     public function __construct(
-        private array $uris,
-        private \Iterator $dataProvider,
-        private string $openingMode = 'w',
+        private readonly array $uris,
+        private readonly \Iterator $dataProvider,
+        private readonly string $openingMode = 'w',
         private bool $autoClose = false,
     ) {
         foreach (\array_unique($this->uris) as $uri) {
@@ -94,6 +94,16 @@ class MultiLazyStreamWriter implements LazyStreamWriterInterface
     public function getHandles(): array
     {
         return $this->handles;
+    }
+
+    public function isAutoClose(): bool
+    {
+        return $this->autoClose;
+    }
+
+    public function setAutoClose(bool $autoClose): void
+    {
+        $this->autoClose = $autoClose;
     }
 
     protected function openAllStreams(): void
