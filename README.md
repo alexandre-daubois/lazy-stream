@@ -5,7 +5,7 @@
 [![Latest Version](http://poser.pugx.org/alexandre-daubois/lazy-stream/v/stable)](https://packagist.org/packages/alexandre-daubois/lazy-stream)
 [![License](http://poser.pugx.org/alexandre-daubois/lazy-stream/license)](https://packagist.org/packages/alexandre-daubois/lazy-stream)
 
-LazyStream is a library that provides a convenient way to write lazily to streams using generators. It allows you to write data incrementally to a stream, reducing memory usage and improving performance when dealing with large amounts of data.
+LazyStream is a **pure PHP**, **zero-dependencies** library that provides a convenient way to write lazily to streams using generators. It allows you to write data incrementally to a stream, reducing memory usage and improving performance when dealing with large amounts of data.
 
 ## Features
 
@@ -106,6 +106,28 @@ $stream = new MultiLazyStreamWriter([
 );
 
 $stream->trigger();
+```
+
+## The `LazyStreamChunkWriter` class
+
+The `LazyStreamChunkWriter` class is a specialized class that allows you to write data to a stream in chunks. The mechanism is pretty different from other writers. Instead of writing data from a generator, you can write data by calling the `send()` method. This allows to write data in a more controlled and "natural" way without having to worry about generators and iterators.
+
+**The LazyStreamChunkWriter ALWAYS append data to the stream, thus the opening mode can not be controlled.** This is done to ensure a proper autoclosing behavior. If you need to write data in an empty stream, you should use the `LazyStreamWriter` class or ensure your stream is empty before sending data.
+
+Here is an example of how to use the `LazyStreamChunkWriter` class:
+
+```php
+use LazyStream\LazyStreamChunkWriter;
+
+$stream = new LazyStreamChunkWriter('https://user:pass@example.com/my-file.json');
+
+$data = /** fetch data from somewhere */;
+$stream->send($data);
+
+// normal flow of the application
+
+$data = /** fetch data from somewhere else */;
+$stream->send($data);
 ```
 
 ## Reading lazily a stream with `LazyStreamReader`
