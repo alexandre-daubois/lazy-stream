@@ -29,7 +29,7 @@
         "test": "./vendor/bin/phpunit"
     },
     "require-dev": {
-        "friendsofphp/php-cs-fixer": "^3.52",
-        "phpunit/phpunit": "^10.5.16"
+        "friendsofphp/php-cs-fixer": "^3.58",
+        "phpunit/phpunit": "^10.5.20"
     }
 }
