@@ -56,7 +56,7 @@ class MultiLazyStreamWriter implements LazyStreamWriterInterface
 
         try {
             while ($this->dataProvider->valid()) {
-                $data = $this->dataProvider->current();
+                $data = $this->dataProvider->current() ?? '';
 
                 foreach ($this->handles as $uri => $handle) {
                     if (false === \fwrite($handle, $data)) {
